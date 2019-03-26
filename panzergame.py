@@ -426,6 +426,51 @@ class VectorSprite(pygame.sprite.Sprite):
                 self.pos.y = 0
 
 
+class Triangle(VectorSprite):
+    
+    
+    def _overwrite_parameters(self):
+        self.pos = pygame.math.Vector2(random.randint(
+                   0, Viewer.width) , -1)
+        self.kill_on_edge = True
+        self.move = pygame.math.Vector2(
+                        random.randint(-20,20),
+                       -random.randint(50,175))
+    
+    def create_image(self):
+        self.image = pygame.Surface((40,40))
+        bild = random.choice ((1,2,)) #
+        if bild == 1:
+            #deltaflügler
+            pygame.draw.line(self.image, (200,0,0), (0,0), (40,0),3)
+            pygame.draw.line(self.image, (200,0,0), (0,0), (20,40),3)
+            pygame.draw.line(self.image, (200,0,0), (20,40), (40,0),3)
+            #rufzeichen
+            pygame.draw.line(self.image, (0,0,255), (20,25), (20,0),7)
+            #triebwerke
+            pygame.draw.line(self.image, (0,0,255), (0,0), (0,40),1)
+            pygame.draw.line(self.image, (0,0,255), (40,0), (40,40),3)
+        if bild == 2:
+            #Tie-fighter
+            pygame.draw.line(self.image, (0,0,255), (20,0), (40,20),3)
+            pygame.draw.line(self.image, (0,0,255), (40,20), (20,40),3)
+            pygame.draw.line(self.image, (0,0,255), (20,40), (0,20),3)
+            pygame.draw.line(self.image, (0,0,255), (0,20), (20,0),3)
+            pygame.draw.line(self.image, (0,0,255), (0,0), (0,40),3)
+            pygame.draw.line(self.image, (0,0,255), (40,0), (40,40),3)
+            pygame.draw.circle(self.image, (255,0,0), (20,20),11,2)
+            pygame.draw.line(self.image, (255,0,0), (9,20), (31,20),2)
+            pygame.draw.line(self.image, (255,0,0), (20,9), (20,31),2)
+            
+            
+            
+        #gemeinsamer Teil   
+        self.image.set_colorkey((0,0,0))
+        self.image.convert_alpha()
+        self.image0 = self.image.copy()
+        self.rect = self.image.get_rect()
+
+
 class PowerUp(VectorSprite):
 
     def _overwrite_parameters(self):
@@ -683,7 +728,26 @@ class Enemy10(Enemy2):
         self.image = Viewer.images["tank7"]
         self.image0 = self.image.copy()
         self.rect = self.image.get_rect()
+
+
+
+class River(VectorSprite):
+    
+    
+    def overwrite_parameters(self):
+        self.kill_on_edge = True
+        self.survive_north = True
+        self.move = pygame.math.Vector2(0,-5)
+        self._layer = 2
         
+        
+    def create_image(self):
+        self.image = Viewer.images["river"]
+        self.image0 = self.image.copy()
+        self.rect = self.image.get_rect()
+        
+        
+                 
 class Tree(VectorSprite):
     
     
@@ -1227,8 +1291,10 @@ class Viewer(object):
                  os.path.join("data", "VK.3601h_preview.png")).convert_alpha()
             Viewer.images["tree"]=pygame.image.load(
                  os.path.join("data", "LPCsnowTrees.png")).convert_alpha()
-
-
+            Viewer.images["terrain"]=pygame.image.load(
+                 os.path.join("data", "terrain.png")).convert_alpha()
+            Viewer.images["river"]=Viewer.images["terrain"].subsurface(
+                  (576,159,671-576,193-159))
 
 
             # --- scalieren ---
@@ -1298,8 +1364,10 @@ class Viewer(object):
         self.evilrocketgroup = pygame.sprite.Group()
         self.enemygroup = pygame.sprite.Group()
         self.powerupgroup = pygame.sprite.Group()
+        self.trianmglegroup = pygame.sprite.Group()
         self.treegroup = pygame.sprite.Group()
         self.flytextgroup = pygame.sprite.Group()
+        self.rivergroup = pygame.sprite.Group()
 
         Mouse.groups = self.allgroup, self.mousegroup, self.tailgroup
         VectorSprite.groups = self.allgroup
@@ -1312,7 +1380,9 @@ class Viewer(object):
         Muzzle_flash.groups= self.allgroup
         Enemy1.groups = self.allgroup, self.enemygroup
         PowerUp.groups = self.allgroup, self.powerupgroup
+        Triangle.groups = self.allgroup,self.powerupgroup
         Tree.groups = self.allgroup, self.treegroup
+        River.groups = self.allgroup, self.rivergroup
 
         self.player1 =  Spaceship(imagename="player1", warp_on_edge=True, pos=pygame.math.Vector2(Viewer.width/2-100,-Viewer.height/2))
         self.player2 =  Spaceship(imagename="player2", angle=180,warp_on_edge=True, pos=pygame.math.Vector2(Viewer.width/2+100,-Viewer.height/2))
@@ -1471,6 +1541,7 @@ class Viewer(object):
 
             # ------delete everything on screen-------
             self.screen.blit(self.background, (0, 0))
+            self.screen.blit(Viewer.images["river"],(100,100))
 
             # ---- pretty moving background stars -----
             #if random.random() < 0.3:
@@ -1514,9 +1585,15 @@ class Viewer(object):
             # --------- Powerup ------------
             if random.random() < 0.04:
                 PowerUp()
+            #----------triangle---
+            if random.random() < 0.07:
+                Triangle()
             #--------tree----------------
             if random.random() < 0.005:
                 Tree()
+            #--------river-------------
+            if random.random() < 0.005:
+                River()
 
             # ------ move indicator for player 1 -----
             #pygame.draw.circle(self.screen, (0,255,0), (100,100), 100,1)
@@ -1677,7 +1754,25 @@ class Viewer(object):
                         #Explosion(pygame.math.Vector2(r.pos.x, r.pos.y))
                         elastic_collision(p, p2)
                         #r.kill()
-
+                        
+                        
+            
+            
+            #collision detection between River and Enemy
+            for r in self.rivergroup:
+                crashgroup = pygame.sprite.spritecollide(r,
+                    self.enemygroup, False, pygame.sprite.collide_rect)
+                for e in crashgroup:
+                    e.pos += e.move * -0.5 * seconds #river makes slow
+            
+            
+            
+            
+            
+            
+            
+            
+            
             # -------------- UPDATE all sprites -------
             self.allgroup.update(seconds)
 
