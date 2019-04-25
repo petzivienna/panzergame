@@ -438,8 +438,8 @@ class Triangle(VectorSprite):
                        -random.randint(50,175))
     
     def create_image(self):
-        self.image = pygame.Surface((40,40))
-        bild = random.choice ((1,2,)) #
+        self.image = pygame.Surface((50,50))
+        bild = random.choice ((1,2,3,4)) #
         if bild == 1:
             #deltaflügler
             pygame.draw.line(self.image, (200,0,0), (0,0), (40,0),3)
@@ -461,7 +461,13 @@ class Triangle(VectorSprite):
             pygame.draw.circle(self.image, (255,0,0), (20,20),11,2)
             pygame.draw.line(self.image, (255,0,0), (9,20), (31,20),2)
             pygame.draw.line(self.image, (255,0,0), (20,9), (20,31),2)
-            
+        if bild == 3:
+            # pingufighter
+            pygame.draw.polygon(self.image, (255,0,0),[(20,0), (40,40), (0,40)]   )
+            pygame.draw.circle(self.image, (0,0,255), (20,20), 10)
+        if bild == 4:
+            # pentagramm
+            pygame.draw.polygon(self.image,(255,0,0),[(15,0),(50,20),(10,50),(40,0),(38,40)])    
             
             
         #gemeinsamer Teil   
@@ -731,14 +737,31 @@ class Enemy10(Enemy2):
 
 
 
+class Bunker1(VectorSprite):
+    
+    def _overwrite_parameters(self):
+        
+        Enemy2._overwrite_parameters(self)
+        self.move = pygame.math.Vector2(0,-5)
+        self.angle = -90
+        self.hitpoints = 8000
+        
+        
+    def create_image(self):
+        self.image = Viewer.images["Bunker1"]
+        self.image0 = self.image.copy()
+        self.rect = self.image.get_rect()
+
+
+
 class River(VectorSprite):
     
     
-    def overwrite_parameters(self):
+    def _overwrite_parameters(self):
         self.kill_on_edge = True
         self.survive_north = True
         self.move = pygame.math.Vector2(0,-5)
-        self._layer = 2
+        self._layer = -5
         
         
     def create_image(self):
@@ -754,7 +777,7 @@ class Tree(VectorSprite):
     def _overwrite_parameters(self):
         
         Enemy2._overwrite_parameters(self)
-        self.move = pygame.math.Vector2(0,-10)
+        self.move = pygame.math.Vector2(0,-5)
     
     def create_image(self):
         self.image = Viewer.images["tree"]
@@ -1295,6 +1318,8 @@ class Viewer(object):
                  os.path.join("data", "terrain.png")).convert_alpha()
             Viewer.images["river"]=Viewer.images["terrain"].subsurface(
                   (576,159,671-576,193-159))
+            Viewer.images["Bunker1"]=pygame.image.load(
+                 os.path.join("data", "bunker1.png")).convert_alpha()
 
 
             # --- scalieren ---
@@ -1368,6 +1393,7 @@ class Viewer(object):
         self.treegroup = pygame.sprite.Group()
         self.flytextgroup = pygame.sprite.Group()
         self.rivergroup = pygame.sprite.Group()
+        self.bunkergroup = pygame.sprite.Group()
 
         Mouse.groups = self.allgroup, self.mousegroup, self.tailgroup
         VectorSprite.groups = self.allgroup
@@ -1383,9 +1409,10 @@ class Viewer(object):
         Triangle.groups = self.allgroup,self.powerupgroup
         Tree.groups = self.allgroup, self.treegroup
         River.groups = self.allgroup, self.rivergroup
+        Bunker1.groups = self.allgroup, self.bunkergroup
 
         self.player1 =  Spaceship(imagename="player1", warp_on_edge=True, pos=pygame.math.Vector2(Viewer.width/2-100,-Viewer.height/2))
-        self.player2 =  Spaceship(imagename="player2", angle=180,warp_on_edge=True, pos=pygame.math.Vector2(Viewer.width/2+100,-Viewer.height/2))
+        #self.player2 =  Spaceship(imagename="player2", angle=180,warp_on_edge=True, pos=pygame.math.Vector2(Viewer.width/2+100,-Viewer.height/2))
 
         # --- engine glow ----
         #p = pygame.math.Vector2(-30,0)
@@ -1401,8 +1428,8 @@ class Viewer(object):
         while running:
             milliseconds = self.clock.tick(self.fps) #
             seconds = milliseconds / 1000
-            pygame.display.set_caption("player1 hp: {} player2 hp: {}".format(
-                                 self.player1.hitpoints, self.player2.hitpoints))
+            pygame.display.set_caption("player1 hp: {}".format(
+                                 self.player1.hitpoints))
             # -------- events ------
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -1484,7 +1511,7 @@ class Viewer(object):
     
     def run(self):
         """The mainloop"""
-        self.coins = 7500
+        self.coins = 1000
         running = True
         pygame.mouse.set_visible(False)
         oldleft, oldmiddle, oldright  = False, False, False
@@ -1494,8 +1521,8 @@ class Viewer(object):
         while running:
             milliseconds = self.clock.tick(self.fps) #
             seconds = milliseconds / 1000
-            pygame.display.set_caption("player1 hp: {} player2 hp: {}".format(
-                                 self.player1.hitpoints, self.player2.hitpoints))
+            pygame.display.set_caption("player1 hp: {}".format(
+                                 self.player1.hitpoints))
             milliseconds = self.clock.tick(self.fps) #
             seconds = milliseconds / 1000
             self.playtime += seconds
@@ -1517,45 +1544,14 @@ class Viewer(object):
                     # ------- change Background image ----
                     if event.key == pygame.K_b:
                         self.loadbackground()
-                    # ------- strafe left player 1 -------
-                    #if event.key == pygame.K_q:
-                    #    self.player1.strafe_left()
-                    # ------- strafe right player 1 ------
-                    #if event.key == pygame.K_e:
-                     #   self.player1.strafe_right()
-                    # ------- strafe left player 2 -------
-                    #if event.key == pygame.K_u:
-                    #    self.player2.strafe_left()
-                    # ------- strafe right player 2 ------
-                    #if event.key == pygame.K_o:
-                    #    self.player2.strafe_right()
-
-
                     # ------- fire player 1 -----
                     if event.key == pygame.K_TAB and self.player1.hitpoints >0:
                         self.player1.fire()
-                    # ------- fire player 2 ------
-                    if event.key == pygame.K_SPACE and self.player2.hitpoints >0:
-                        self.player2.fire()
-
+                    
 
             # ------delete everything on screen-------
             self.screen.blit(self.background, (0, 0))
-            self.screen.blit(Viewer.images["river"],(100,100))
-
-            # ---- pretty moving background stars -----
-            #if random.random() < 0.3:
-            #   Star()
-            #if random.random() < 0.001:
-            #    Boss1()
-            # -------- Enemy1---------------#
-            #if random.random() < 0.001:
-            #    Flytext(400,200, "new wave is coming")
-            #    for e in range(5, 9):
-            #        x = random.randint(0, Viewer.width)
-            #        y = 300
-            #        Enemy1(pos=pygame.math.Vector2(x,y))
-            #------ Enemy2 (tank) -----
+            #self.screen.blit(Viewer.images["river"],(100,100)
             if random.random() < 0.0005:
                 Enemy2()
             #------ Enemy3 (tank) -----
@@ -1594,6 +1590,10 @@ class Viewer(object):
             #--------river-------------
             if random.random() < 0.005:
                 River()
+            #-------Bunker1---------
+            if random.random() < 0.005:
+                Bunker1()
+   
 
             # ------ move indicator for player 1 -----
             #pygame.draw.circle(self.screen, (0,255,0), (100,100), 100,1)
@@ -1613,16 +1613,6 @@ class Viewer(object):
                 self.player1.move_forward()
             if pressed_keys[pygame.K_s]:
                 self.player1.move_backward()
-
-            # ------- movement keys for player 2 ---------
-            if pressed_keys[pygame.K_j]:
-                 self.player2.turn_left()
-            if pressed_keys[pygame.K_l]:
-                 self.player2.turn_right()
-            if pressed_keys[pygame.K_i]:
-                 self.player2.move_forward()
-            if pressed_keys[pygame.K_k]:
-                 self.player2.move_backward()
 
             # ------ mouse handler ------
             left,middle,right = pygame.mouse.get_pressed()
@@ -1691,16 +1681,7 @@ class Viewer(object):
                         o.kill()
 
 
-            # ----- collision detection between player and rocket -----
-            for p in self.playergroup:
-                crashgroup = pygame.sprite.spritecollide(p, self.rocketgroup,
-                             False, pygame.sprite.collide_mask)
-                for r in crashgroup:
-                    if r.bossnumber != p.number:
-                        p.hitpoints -= random.randint(4,9)
-                        Explosion(pygame.math.Vector2(r.pos.x, r.pos.y))
-                        elastic_collision(p, r)
-                        r.kill()
+            
                         
             # ----- collision detection between tree and rocket -----
             for t in self.treegroup:
@@ -1733,40 +1714,49 @@ class Viewer(object):
                         p.hitpoints -= random.randint(3,6)
                     Explosion(pygame.math.Vector2(r.pos.x, r.pos.y))
                     #elastic_collision(p, r)
-                    r.kill()
+                    r.kill() 
 
+            
             # ----- collision detection between enemy and rocket -----
             for e in self.enemygroup:
                 crashgroup = pygame.sprite.spritecollide(e, self.rocketgroup,
                              False, pygame.sprite.collide_mask)
                 for r in crashgroup:
                      e.hitpoints -= r.damage
+                     self.coins += 1
+                     if e.hitpoints <= 0:
+                         self.coins += 100
                      Explosion(posvector=r.pos)
                      r.kill()
-
-            # -------------- collision detection between player and player------ #
-            for p in self.playergroup:
-                crashgroup = pygame.sprite.spritecollide(p, self.playergroup,
-                             False, pygame.sprite.collide_mask)
-                for p2 in crashgroup:
-                    if p.number != p2.number:
-                        #p.hitpoints -= 1
-                        #Explosion(pygame.math.Vector2(r.pos.x, r.pos.y))
-                        elastic_collision(p, p2)
-                        #r.kill()
                         
-                        
-            
-            
             #collision detection between River and Enemy
             for r in self.rivergroup:
                 crashgroup = pygame.sprite.spritecollide(r,
                     self.enemygroup, False, pygame.sprite.collide_rect)
                 for e in crashgroup:
                     e.pos += e.move * -0.5 * seconds #river makes slow
+                    
+            # ----- collision detection between player and Bunker -----
+            for p in self.playergroup:
+                crashgroup = pygame.sprite.spritecollide(p, self.bunkergroup,
+                             False, pygame.sprite.collide_rect)
+                for b in crashgroup:
+                    #if r.bossnumber != p.number:
+                    if not p.bulletproof:
+                        Explosion(pygame.math.Vector2(b.pos.x, b.pos.y))
+                        #elastic_collision(p, b)
+                        p.hitpoints -= 10           
             
-            
-            
+            # ----- collision detection between Bunker and rocket -----
+            for b in self.bunkergroup:
+                crashgroup = pygame.sprite.spritecollide(b, self.rocketgroup,
+                             False, pygame.sprite.collide_mask)
+                for r in crashgroup:
+                     b.hitpoints -= 1
+                     if b.hitpoints <= 0:
+                         self.coins += 10000
+                     Explosion(posvector=r.pos)
+                     r.kill()
             
             
             
