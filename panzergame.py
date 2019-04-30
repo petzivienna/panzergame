@@ -475,15 +475,15 @@ class Triangle(VectorSprite):
         self.image.convert_alpha()
         self.image0 = self.image.copy()
         self.rect = self.image.get_rect()
-
-
+        
 class Plasma(VectorSprite):
     
     def _overwrite_parameters(self):
-        self.kill_on_edge = True
-        self.radius = 10
-        self.delta = 1
-        
+         self.kill_on_edge = True
+         self.radius = 10
+         self.delta = 1
+         self.damage = 50
+         
     def create_image(self):
         self.image = pygame.Surface((self.radius*2,self.radius*2))
         r = 255
@@ -494,7 +494,7 @@ class Plasma(VectorSprite):
         self.image.convert_alpha()
         self.image0 = self.image.copy()
         self.rect = self.image.get_rect()
-    
+        
     def update(self, seconds):
         VectorSprite.update(self, seconds)
         self.radius += self.delta
@@ -507,6 +507,8 @@ class Plasma(VectorSprite):
         oldcenter = self.rect.center
         self.create_image()
         self.rect.center = oldcenter
+
+
 
 class PowerUp(VectorSprite):
 
@@ -533,10 +535,6 @@ class PowerUp(VectorSprite):
         self.image.convert_alpha()
         self.image0 = self.image.copy()
         self.rect = self.image.get_rect()
-        
- 
- 
-
 
 
 class Enemy1(VectorSprite):
@@ -775,6 +773,7 @@ class Enemy10(Enemy2):
 class Bunker1(VectorSprite):
     
     def _overwrite_parameters(self):
+        
         Enemy2._overwrite_parameters(self)
         self.move = pygame.math.Vector2(0,-5)
         self.angle = -90
@@ -785,19 +784,18 @@ class Bunker1(VectorSprite):
         self.image = Viewer.images["Bunker1"]
         self.image0 = self.image.copy()
         self.rect = self.image.get_rect()
-        
+
     def update(self, seconds):
         VectorSprite.update(self, seconds)
         if random.random() < 0.001:
             angle = random.randint(10,60)
             speed = random.randint(30,70)
             for a in range(270-angle, 270+angle+1, angle):
-                v = pygame.math.Vector2(speed,0)
+                v = pygame.math.Vector2(speed, 0)
                 v.rotate_ip(a)
                 p = pygame.math.Vector2(self.pos.x, self.pos.y)
-                Plasma(pos=p,move=v)
-
-
+                Plasma(pos = p, move= v)
+            
 
 class River(VectorSprite):
     
@@ -1455,6 +1453,7 @@ class Viewer(object):
         Tree.groups = self.allgroup, self.treegroup
         River.groups = self.allgroup, self.rivergroup
         Bunker1.groups = self.allgroup, self.bunkergroup
+        Plasma.groups = self.allgroup, self.evilrocketgroup
 
         self.player1 =  Spaceship(imagename="player1", warp_on_edge=True, pos=pygame.math.Vector2(Viewer.width/2-100,-Viewer.height/2))
         #self.player2 =  Spaceship(imagename="player2", angle=180,warp_on_edge=True, pos=pygame.math.Vector2(Viewer.width/2+100,-Viewer.height/2))
