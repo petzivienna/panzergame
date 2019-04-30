@@ -777,7 +777,7 @@ class Bunker1(VectorSprite):
         Enemy2._overwrite_parameters(self)
         self.move = pygame.math.Vector2(0,-5)
         self.angle = -90
-        self.hitpoints = 8000
+        self.hitpoints = 2500
         
         
     def create_image(self):
@@ -1625,9 +1625,9 @@ class Viewer(object):
             # --------- Powerup ------------
             if random.random() < 0.04:
                 PowerUp()
-            #----------triangle---
-            if random.random() < 0.07:
-                Triangle()
+            ##----------triangle---
+            #if random.random() < 0.07:
+            #    Triangle()
             #--------tree----------------
             if random.random() < 0.005:
                 Tree()
@@ -1657,6 +1657,9 @@ class Viewer(object):
                 self.player1.move_forward()
             if pressed_keys[pygame.K_s]:
                 self.player1.move_backward()
+            if pressed_keys[pygame.K_TAB]:
+                if self.player1.hitpoints > 0:
+                    self.player1.fire()
 
             # ------ mouse handler ------
             left,middle,right = pygame.mouse.get_pressed()
@@ -1800,7 +1803,7 @@ class Viewer(object):
                      if b.hitpoints <= 0:
                          self.coins += 10000
                      Explosion(posvector=r.pos)
-                     r.kill()
+                     r.kill() 
             
             
             
